@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+
+<html lang="hu">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Basic RPG – Unity gyakorlati útmutató</title>
+<style>
+:root{
+  --bg:#f4f6f8; --paper:#fff; --text:#20252b; --muted:#66717d;
+  --line:#d9dfe6; --nav:#203247; --nav-hover:#2b435f;
+  --accent:#c96a12; --accent-soft:#fff4e8; --blue:#315f8f;
+  --blue-soft:#eef4fa; --green:#3d735d; --code:#1e252d; --code-text:#f5f7fa;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Segoe UI,Arial,sans-serif;line-height:1.67}
+.layout{display:grid;grid-template-columns:285px minmax(0,1fr);min-height:100vh}
+aside{position:sticky;top:0;height:100vh;overflow:auto;background:var(--nav);padding:24px 18px}
+.brand{font-size:1.22rem;font-weight:700;color:white;margin:0 0 20px 8px}
+nav a{display:block;color:#dbe4ee;text-decoration:none;padding:8px 10px;margin:2px 0;border-radius:5px;font-size:.91rem}
+nav a:hover{background:var(--nav-hover);color:white}
+main{width:100%;max-width:1060px;padding:45px 56px 90px}
+header{margin-bottom:52px}
+h1{font-size:2.35rem;line-height:1.15;color:#20344c;margin:0 0 14px}
+header p{max-width:870px;color:var(--muted);font-size:1.06rem}
+section{margin:55px 0}
+h2{font-size:1.68rem;color:#253c58;margin:0 0 20px;padding-bottom:9px;border-bottom:2px solid #d5dce4}
+h3{font-size:1.18rem;color:#304f72;margin:31px 0 10px}
+h4{font-size:1rem;color:#354e69;margin:22px 0 8px}
+p{max-width:920px;margin:10px 0 15px}
+strong{color:#17293e}
+code{font-family:Consolas,Monaco,monospace}
+p code,li code,td code{background:#edf1f5;border:1px solid #dce2e8;border-radius:4px;padding:1px 5px;color:#1f2a36}
+pre{position:relative;background:var(--code);color:var(--code-text);padding:17px 18px;border-radius:7px;overflow:auto;margin:16px 0 20px;border-left:5px solid var(--accent)}
+pre code{font-size:.9rem;line-height:1.47;color:var(--code-text)}
+.copy{position:absolute;right:9px;top:9px;border:1px solid #53606d;background:#313b46;color:#fff;border-radius:4px;padding:4px 8px;font-size:.75rem;cursor:pointer}
+.copy:hover{background:#46525e}
+.note{background:var(--accent-soft);border-left:4px solid var(--accent);padding:14px 16px;margin:18px 0;border-radius:3px}
+.info{background:var(--blue-soft);border-left-color:var(--blue)}
+.steps{counter-reset:step;margin:18px 0 25px}
+.step{counter-increment:step;display:grid;grid-template-columns:34px 1fr;gap:12px;margin:12px 0;align-items:start}
+.step::before{content:counter(step);display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:#304f72;color:#fff;font-weight:700;font-size:.85rem;margin-top:1px}
+.path{font-family:Consolas,monospace;background:#edf1f5;border:1px solid #dce2e8;border-radius:4px;padding:2px 5px}
+table{width:100%;max-width:920px;border-collapse:collapse;margin:18px 0 22px;background:#fff}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:#eef2f6;color:#253a54}
+.figure{max-width:920px;margin:24px 0}
+.figure svg{display:block;width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:7px}
+.caption{font-size:.86rem;color:var(--muted);margin-top:7px}
+.hierarchy{display:inline-block;background:#f1f4f7;border:1px solid #dce2e8;border-radius:6px;padding:14px 18px;font-family:Consolas,monospace;line-height:1.55;white-space:pre}
+.compact{margin:9px 0 16px;padding-left:22px}
+.compact li{margin:4px 0}
+.property{font-weight:600;color:#2f4c6a}
+footer{margin-top:60px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.86rem}
+@media(max-width:880px){
+ .layout{display:block}
+ aside{position:relative;height:auto}
+ main{padding:30px 20px 70px}
+}
+
+.figure svg text{font-family:Segoe UI,Arial,sans-serif}
+.figure svg{overflow:hidden}
+@media(max-width:650px){
+  .figure{overflow-x:auto}
+  .figure svg{min-width:720px}
+}
+
+.note a{font-weight:600;text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+<div class="brand">Basic RPG</div>
+<nav>
+<a href="#demo">1. A demo alkalmazás bemutatása</a>
+<a href="#unity">2. Unity</a>
+<a href="#jelenet">3. Jelenet és Player objektum</a>
+<a href="#scriptek">4. Scriptek Unityben</a>
+<a href="#mozgas">5. Player Movement</a>
+<a href="#utkozes">6. Collision, Trigger és az ajtó</a>
+<a href="#gyemant">7. Gyémántok és gyűjtés</a>
+<a href="#ui">8. UI és a feltételes ajtó</a>
+<a href="#enemy">9. Enemy és támadás</a>
+<a href="#animacio">10. Animáció</a>
+</nav>
+</aside>
+<main>
+<header>
+<h1>Basic RPG – Unity gyakorlati útmutató</h1>
+<p>Az útmutató egy egyszerű 3D-s demo alkalmazás elkészítésén keresztül mutatja be a Unity legfontosabb alapfogalmait. A cél nem a Unity teljes körű ismertetése, hanem annak bemutatása, hogyan épül fel egy kisebb játék GameObjectokból, komponensekből, scriptekből, fizikai eseményekből, UI-elemekből és animációból.</p>
+</header>
+<section id="demo">
+<h2>1. A demo alkalmazás bemutatása</h2>
+<p>A tananyag feldolgozása előtt nyisd meg a kész <strong>BasicRPG</strong> projektet, indítsd el, és először csak figyeld meg a működését. Így a később elkészített objektumok és scriptek nem elszigetelt példák lesznek, hanem már előre látható, hogy milyen szerepet töltenek be a teljes programban.</p>
+<div class="note info">
+<strong>Kész projekt:</strong> A tananyag feldolgozása előtt töltsd le és nyisd meg a kész demo alkalmazást:
+<a download="" href="BasicRPG.zip"><strong>BasicRPG.zip letöltése</strong></a>.
+Az <code>index.html</code> és a <code>BasicRPG.zip</code> fájl ugyanabban a mappában legyen.
+</div>
+
+<p>A játékos egy egyszerű háromdimenziós pályán mozog. A pályán gyémántokat lehet összegyűjteni. A képernyő jelzi az összegyűjtött gyémántokat, és amikor a játékos eléri a szükséges mennyiséget, rövid üzenetet kap arról, hogy az ajtóhoz mehet. Az ajtó csak ekkor nyílik ki. Közben ellenfelek közelednek a játékoshoz, amelyeket a játékos a bottal meg tud támadni.</p>
+<div class="note info"><strong>Javasolt munkamenet:</strong> először próbáld ki a kész program fő funkcióit, majd hozz létre egy új Unity-projektet, és a tananyag lépéseit követve készítsd el újra a demót.</div>
+</section>
+<section id="unity">
+<h2>2. Unity</h2>
+<p>A Unity egy <strong>game engine</strong>, vagyis játékmotor. A játékmotor több olyan szolgáltatást biztosít, amelyre játékfejlesztés közben rendszeresen szükség van. Kezeli többek között a háromdimenziós megjelenítést, a fizikai rendszert, a billentyűzet és más beviteli eszközök használatát, a hangot, az animációt és a felhasználói felületet.</p>
+<p>A Unityben a program felépítése alapvetően eltér egy hagyományos konzolos programétól. Nem egyetlen forrásfájlból indulunk ki, hanem a jelenetben objektumokat hozunk létre, ezekhez komponenseket rendelünk, majd scriptekkel adjuk meg a viselkedésüket. Egy fal, egy ajtó, egy gyémánt vagy maga a játékos is <strong>GameObject</strong>.</p>
+<h3>Telepítés és az Editor felépítése</h3>
+<p>A Unity Editor telepítését a <strong>Unity Hub</strong> segítségével érdemes elvégezni. A Hub kezeli a telepített Unity-verziókat és a projekteket is.</p>
+<div class="steps">
+<div class="step"><div>Telepítsd a Unity Hub alkalmazást.</div></div>
+<div class="step"><div>A Hubban nyisd meg az <strong>Installs</strong> részt, majd válaszd az <strong>Install Editor</strong> lehetőséget.</div></div>
+<div class="step"><div>Ehhez a tananyaghoz Unity 6 használata javasolt. A mellékelt BasicRPG projekt a <strong>6000.0.33f1</strong> verzióval készült.</div></div>
+<div class="step"><div>A telepítéshez adj C# fejlesztésre alkalmas kódszerkesztőt is. Windows alatt a Visual Studio megfelelő.</div></div>
+</div>
+<p>Az Editorban a <strong>Hierarchy</strong> a jelenet GameObjectjait mutatja. A <strong>Scene</strong> nézetben szerkesztjük a pályát, a <strong>Game</strong> nézetben pedig azt látjuk, amit futás közben a kamera megjelenít. Az <strong>Inspector</strong> mindig a kijelölt objektum komponenseit és azok beállításait mutatja. A <strong>Project</strong> ablak tartalmazza a projekt fájljait, a <strong>Console</strong> pedig a hibák és a futás közbeni üzenetek megjelenítésére szolgál.</p>
+</section>
+<section id="jelenet">
+<h2>3. Jelenet és Player objektum</h2>
+<p>A Unity egy játékpályát vagy képernyőt <strong>Scene</strong>-nek nevez. Ebben a demóban egyetlen jelenettel dolgozunk. A pálya egyszerű Plane és Cube objektumokból áll. Új 3D objektum létrehozásához kattints jobb gombbal a <strong>Hierarchy</strong> ablak üres területére, majd válaszd a <span class="path">3D Object</span> almenüt, azon belül pedig a szükséges típust, például a <strong>Plane</strong> vagy <strong>Cube</strong> elemet.</p>
+<p>Minden GameObject rendelkezik <strong>Transform</strong> komponenssel. A <span class="property">Position</span> az objektum helyét, a <span class="property">Rotation</span> az elfordulását, a <span class="property">Scale</span> pedig a méretarányát adja meg. A jelenet szerkesztése során valójában ezeket az értékeket változtatjuk.</p>
+<h3>A Player felépítése</h3>
+<p>A kész projekt Player objektuma nem egyetlen modell, hanem több egyszerű 3D objektumból áll. A <strong>Hierarchy</strong> ablak üres területén kattints jobb gombbal, válaszd a <span class="path">Create Empty</span> parancsot, majd nevezd át az új GameObjectet <strong>Player</strong>-re. Ezután a Hierarchyban hozz létre alatta Cube és Sphere objektumokat, vagy a már létrehozott objektumokat húzd rá a Playerre. Amikor egy GameObjectet egy másikra húzol a Hierarchyban, gyermekobjummá válik. A gyermekobjektum saját lokális Transformmal rendelkezik, de követi a szülő mozgását és elfordulását.</p>
+<div class="hierarchy">Player
+├── Body
+├── Head
+├── Arm1
+├── Arm2
+└── Main Camera</div>
+<div class="figure">
+<svg aria-label="A Player egyszerű felépítése" viewbox="0 0 920 360">
+<rect fill="#fff" height="360" width="920"></rect>
+<g font-family="Segoe UI,Arial">
+<text fill="#253c58" font-size="21" font-weight="700" text-anchor="middle" x="460" y="42">A Player egyszerű felépítése</text>
+<g transform="translate(300 78)">
+<rect fill="#4d86c4" height="145" rx="5" stroke="#315f8f" stroke-width="3" width="90" x="-45" y="105"></rect>
+<circle cx="0" cy="61" fill="#4d86c4" r="47" stroke="#315f8f" stroke-width="3"></circle>
+<rect fill="#4d86c4" height="105" rx="8" stroke="#315f8f" stroke-width="3" width="36" x="-92" y="125"></rect>
+<rect fill="#4d86c4" height="105" rx="8" stroke="#315f8f" stroke-width="3" width="36" x="56" y="125"></rect>
+</g>
+<g fill="#20252b" font-size="16">
+<text x="520" y="120">A Player gyökérobjektum alatt találhatók</text>
+<text x="520" y="148">a testet alkotó gyermekobjektumok.</text>
+<text x="520" y="190">A Body és az Arm elemek Cube-ok,</text>
+<text x="520" y="218">a Head pedig Sphere.</text>
+<text x="520" y="260">A Main Camera szintén a Player gyermeke,</text>
+<text x="520" y="288">ezért együtt mozog a játékossal.</text>
+</g>
+</g>
+</svg>
+<div class="caption">A Player felépítése a tananyag elején. A botot és az animációhoz szükséges köztes objektumot csak később adjuk hozzá.</div>
+</div>
+<p>A kész projektben a <strong>Body</strong> és a két kar Cube, a <strong>Head</strong> Sphere. A kamera szintén a Player gyermekobjektuma, ezért együtt mozog a játékossal. A botot egyelőre nem készítjük el; arra csak a támadás és az animáció tárgyalásakor lesz szükség.</p>
+<h3>Material</h3>
+<p>A <strong>Material</strong> az objektum felületének megjelenését adja meg. A <strong>Project</strong> ablakban hozz létre egy <strong>Materials</strong> mappát. Nyisd meg ezt a mappát, kattints benne jobb gombbal egy üres területre, majd válaszd a <span class="path">Create → Material</span> parancsot. Jelöld ki az elkészült materialt a Project ablakban, és az <strong>Inspector</strong> ablakban állítsd be a színét. A materialt ezután húzd rá a Scene-ben vagy a Hierarchyban arra a GameObjectre, amelynek a megjelenését módosítani szeretnéd.</p>
+</section>
+<section id="scriptek">
+<h2>4. Scriptek Unityben</h2>
+<p>A GameObjectok viselkedését C# scriptekkel adjuk meg. A <strong>Project</strong> ablakban célszerű külön <strong>Scripts</strong> mappát használni. Nyisd meg ezt a mappát, kattints jobb gombbal az üres területére, majd válaszd a <span class="path">Create → Scripting → MonoBehaviour Script</span> parancsot. Az új script a Project ablakban jelenik meg; itt nevezd át a kívánt névre.</p>
+<p>A script fájlneve és az osztály neve legyen azonos. A Player mozgatásához például <strong>PlayerMovement</strong> nevű scriptet készítünk.</p>
+<pre><button class="copy">Másolás</button><code>using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+}</code></pre>
+<p>Az osztály a <code>MonoBehaviour</code> osztályból öröklődik. Ennek köszönhetően a Unity komponensként tudja kezelni, hozzáadhatjuk egy GameObjecthez, és használhatjuk a Unity által automatikusan meghívott eseménymetódusokat.</p>
+<h3>A script életciklusa</h3>
+<p>A Unity nem úgy futtatja a scripteket, hogy egyszer belép egy <code>Main()</code> metódusba és sorban végrehajt mindent. A motor különböző eseményekhez kapcsolódó metódusokat hív meg. Ezek közül a demó szempontjából a következők a legfontosabbak.</p>
+<table>
+<thead><tr><th>Metódus</th><th>Szerepe</th></tr></thead>
+<tbody>
+<tr><td><code>Start()</code></td><td>Egyszer fut le, amikor az objektum működése megkezdődik. Kezdeti beállításokra és más komponensek referenciáinak lekérésére használható.</td></tr>
+<tr><td><code>Update()</code></td><td>Minden megjelenített képkockában lefut. Billentyűzetkezeléshez és a legtöbb egyszerű játékmeneti művelethez ezt használjuk.</td></tr>
+<tr><td><code>FixedUpdate()</code></td><td>A fizikai rendszer rögzített időlépéseihez igazodik. Fizikai erőkkel vagy Rigidbody műveletekkel végzett mozgatásnál ennek van jelentősége.</td></tr>
+<tr><td><code>LateUpdate()</code></td><td>Az adott képkocka Update hívásai után fut le. Például követő kamera esetén hasznos, ha a kamera csak a Player mozgása után módosítja a helyzetét.</td></tr>
+</tbody>
+</table>
+<div class="figure">
+<svg aria-label="A MonoBehaviour egyszerűsített életciklusa" viewbox="0 0 920 420">
+<rect fill="#fff" height="420" width="920"></rect>
+<defs>
+<marker id="lifeArr" markerheight="10" markerwidth="10" orient="auto" refx="9" refy="3">
+<path d="M0,0 L0,6 L9,3 z" fill="#315f8f"></path>
+</marker>
+</defs>
+<g font-family="Segoe UI,Arial">
+<rect fill="#eef4fa" height="68" rx="9" stroke="#315f8f" stroke-width="2" width="150" x="65" y="62"></rect>
+<text fill="#253c58" font-size="18" font-weight="700" text-anchor="middle" x="140" y="92">Start()</text>
+<text fill="#66717d" font-size="13" text-anchor="middle" x="140" y="115">egyszer, induláskor</text>
+<rect fill="#f3f6f8" height="68" rx="9" stroke="#627487" stroke-width="2" width="180" x="315" y="62"></rect>
+<text fill="#253c58" font-size="18" font-weight="700" text-anchor="middle" x="405" y="92">FixedUpdate()</text>
+<text fill="#66717d" font-size="13" text-anchor="middle" x="405" y="115">fizikai időlépésekben</text>
+<rect fill="#eef4fa" height="68" rx="9" stroke="#315f8f" stroke-width="2" width="150" x="595" y="62"></rect>
+<text fill="#253c58" font-size="18" font-weight="700" text-anchor="middle" x="670" y="92">Update()</text>
+<text fill="#66717d" font-size="13" text-anchor="middle" x="670" y="115">minden képkockában</text>
+<rect fill="#fff4e8" height="68" rx="9" stroke="#c96a12" stroke-width="2" width="150" x="595" y="245"></rect>
+<text fill="#253c58" font-size="18" font-weight="700" text-anchor="middle" x="670" y="275">LateUpdate()</text>
+<text fill="#66717d" font-size="13" text-anchor="middle" x="670" y="298">az Update után</text>
+<line marker-end="url(#lifeArr)" stroke="#315f8f" stroke-width="2.5" x1="215" x2="303" y1="96" y2="96"></line>
+<line marker-end="url(#lifeArr)" stroke="#315f8f" stroke-width="2.5" x1="495" x2="583" y1="96" y2="96"></line>
+<line marker-end="url(#lifeArr)" stroke="#315f8f" stroke-width="2.5" x1="670" x2="670" y1="130" y2="233"></line>
+<path d="M670 313 C670 365, 405 365, 405 142" fill="none" marker-end="url(#lifeArr)" stroke="#7d8a96" stroke-dasharray="6 5" stroke-width="2"></path>
+<text fill="#66717d" font-size="14" text-anchor="middle" x="455" y="388">a következő fizikai/frissítési ciklusokban ismétlődik</text>
+<text fill="#66717d" font-size="14" x="65" y="180">A valós Unity-életciklus ennél több eseményt tartalmaz.</text>
+<text fill="#66717d" font-size="14" x="65" y="202">Az ábra csak a tananyagban használt négy metódus kapcsolatát mutatja.</text>
+</g>
+</svg>
+<div class="caption">A MonoBehaviour életciklusának egyszerűsített szemléltetése. A FixedUpdate nem feltétlenül egyszer fut minden renderelt képkockában: lehet, hogy egy képkocka között többször, vagy egyáltalán nem fut le.</div>
+</div>
+<h3>Inspectorból állítható mezők</h3>
+<p>A <code>public</code> mezők megjelennek a script komponens Inspectorában. Ez játékfejlesztésnél különösen praktikus, mert például a mozgás sebességét vagy egy ajtóhoz szükséges gyémántok számát a forráskód módosítása nélkül lehet beállítani.</p>
+<pre><button class="copy">Másolás</button><code>public float movementSpeed = 5;
+public float rotationSpeed = 100;</code></pre>
+<p>A script hozzáadásához először jelöld ki a megfelelő GameObjectet a <strong>Hierarchy</strong> ablakban. Ezután az <strong>Inspector</strong> alján kattints az <strong>Add Component</strong> gombra, kezdd el begépelni a script nevét, majd válaszd ki a találatból. Másik lehetőség, hogy a script fájlját a <strong>Project</strong> ablakból közvetlenül ráhúzod a GameObjectre a Hierarchyban vagy az Inspectorba.</p>
+</section>
+<section id="mozgas">
+<h2>5. Player Movement</h2>
+<p>A demo a Unity klasszikus <code>Input</code> API-ját használja, ezért új projektben engedélyezni kell, hogy a régi Input Manager is működjön.</p>
+<div class="steps">
+<div class="step"><div>A Unity Editor felső menüsorában válaszd az <span class="path">Edit → Project Settings</span> parancsot. A megnyíló <strong>Project Settings</strong> ablakban fogjuk módosítani a projekt inputbeállítását.</div></div>
+<div class="step"><div>Válaszd a <strong>Player</strong> részt, majd keresd meg az <strong>Other Settings → Configuration</strong> csoportot.</div></div>
+<div class="step"><div>Az <strong>Active Input Handling</strong> értékét állítsd <strong>Both</strong>-ra. Ha a Unity újraindítást kér, indítsd újra az Editort.</div></div>
+</div>
+<p>Az <code>Input.GetAxis()</code> -1 és 1 közötti értéket ad vissza. A <code>Vertical</code> tengely az előre-hátra mozgást, a <code>Horizontal</code> a balra-jobbra fordulást vezérli.</p>
+<pre><button class="copy">Másolás</button><code>using UnityEngine;
+
+public class PlayerMovement : MonoBehaviour
+{
+    public float movementSpeed = 5;
+    public float rotationSpeed = 100;
+
+    void Update()
+    {
+        float verticalInput = Input.GetAxis("Vertical");
+        float horizontalInput = Input.GetAxis("Horizontal");
+
+        transform.Rotate(Vector3.up * rotationSpeed * horizontalInput * Time.deltaTime);
+        transform.Translate(Vector3.forward * movementSpeed * verticalInput * Time.deltaTime);
+    }
+}</code></pre>
+<h3>A kód elemeinek értelmezése</h3>
+<p>A két első sorban <code>float</code> típusú lokális változókat hozunk létre. A <code>float</code> lebegőpontos valós szám tárolására szolgál. A <code>verticalInput</code> és <code>horizontalInput</code> változók csak az <code>Update()</code> futása alatt léteznek, ezért nem jelennek meg az Inspectorban.</p>
+<pre><button class="copy">Másolás</button><code>float verticalInput = Input.GetAxis("Vertical");
+float horizontalInput = Input.GetAxis("Horizontal");</code></pre>
+<p>Az <code>Input.GetAxis()</code> a Unity <code>Input</code> osztályának metódusa. A zárójelben megadott <code>"Vertical"</code> és <code>"Horizontal"</code> szövegek a Unityben előre definiált inputtengelyek nevei. A metódus egy -1 és 1 közötti valós értéket ad vissza. Ha például a játékos előrefelé mozgató billentyűt nyomja, a <code>Vertical</code> pozitív értéket vesz fel; hátrafelé mozgásnál negatívat.</p>
+<pre><button class="copy">Másolás</button><code>transform.Rotate(Vector3.up * rotationSpeed * horizontalInput * Time.deltaTime);</code></pre>
+<p>A <code>transform</code> az aktuális GameObject Transform komponensére hivatkozik. A <code>Rotate()</code> ezt a Transformot forgatja el. A <code>Vector3.up</code> a háromdimenziós tér pozitív Y irányát jelölő vektor, vagyis ebben az esetben a Player a függőleges tengely körül fordul. A <code>rotationSpeed</code> megadja a forgás sebességét, a <code>horizontalInput</code> az irányt és az input nagyságát, a <code>Time.deltaTime</code> pedig az előző képkocka óta eltelt időt.</p>
+<pre><button class="copy">Másolás</button><code>transform.Translate(Vector3.forward * movementSpeed * verticalInput * Time.deltaTime);</code></pre>
+<p>A <code>Translate()</code> a GameObject helyzetét változtatja meg. A <code>Vector3.forward</code> a GameObject saját előre irányát jelenti. Emiatt a Player nem a világ egy rögzített tengelye mentén mozog, hanem mindig arra halad, amerre előzőleg elfordítottuk. A szorzásban a <code>movementSpeed</code> a sebességet, a <code>verticalInput</code> az előre vagy hátra irányt, a <code>Time.deltaTime</code> pedig az időarányos mozgást biztosítja.</p>
+<div class="note info"><strong>Érdemes megfigyelni:</strong> a <code>Vector3.up</code> és <code>Vector3.forward</code> nem számok, hanem háromkomponensű vektorok. Egy vektort valós számmal megszorozva ugyanazt az irányt kapjuk, csak más hosszúsággal. Ezt használjuk fel a mozgás és a forgás mértékének megadására.</div>
+<p>A <code>Rotate()</code> a Player függőleges tengely körüli elfordítását végzi. A <code>Translate()</code> a saját előre irányába mozgatja az objektumot, ezért a Player arra halad, amerre éppen néz. A <code>Time.deltaTime</code> az előző képkocka óta eltelt idő; ezzel a mozgás sebessége nem közvetlenül a képkockaszámtól függ.</p>
+</section>
+<section id="utkozes">
+<h2>6. Collision, Trigger és az ajtó</h2>
+<p>A Unity fizikájában két GameObject közötti kapcsolat alapját a <strong>Collider</strong> adja. A Collider az objektum ütközési alakját írja le. Egy Cube esetén ez gyakran Box Collider, egy gömbnél Sphere Collider, egy emberhez hasonló alaknál pedig Capsule Collider.</p>
+<p>A Collider önmagában még nem mondja meg, hogy az objektum csak érzékeljen egy másikat, vagy valóban fizikailag ütközzön vele. Ezt elsősorban az <strong>Is Trigger</strong> beállítás és a <strong>Rigidbody</strong> jelenléte határozza meg.</p>
+<h3>Fizikai ütközés</h3>
+<p>Ha azt szeretnénk, hogy két objektum ne tudjon egyszerűen áthaladni egymáson, mindkettőnek Colliderrel kell rendelkeznie, és az érintkező Colliderek <strong>Is Trigger</strong> beállítása legyen kikapcsolva. A fizikai rendszerben mozgó objektumon rendszerint Rigidbody is található.</p>
+<div class="figure">
+<svg aria-label="Fizikai ütközés beállítása" viewbox="0 0 920 300">
+<rect fill="#fff" height="300" width="920"></rect>
+<g font-family="Segoe UI,Arial">
+<rect fill="#eef4fa" height="165" rx="9" stroke="#315f8f" stroke-width="2" width="310" x="70" y="65"></rect>
+<text font-size="19" font-weight="700" text-anchor="middle" x="225" y="98">Player</text>
+<text font-size="15" x="100" y="135">Collider: igen</text>
+<text font-size="15" x="100" y="164">Is Trigger: kikapcsolva</text>
+<text font-size="15" x="100" y="193">Rigidbody: igen</text>
+<rect fill="#f4f6f8" height="165" rx="9" stroke="#6c7885" stroke-width="2" width="310" x="540" y="65"></rect>
+<text font-size="19" font-weight="700" text-anchor="middle" x="695" y="98">Fal</text>
+<text font-size="15" x="570" y="135">Collider: igen</text>
+<text font-size="15" x="570" y="164">Is Trigger: kikapcsolva</text>
+<text font-size="15" x="570" y="193">Rigidbody: nem szükséges</text>
+<line stroke="#c96a12" stroke-width="4" x1="390" x2="530" y1="148" y2="148"></line>
+<text fill="#c96a12" font-size="14" text-anchor="middle" x="460" y="130">ütközés</text>
+<text fill="#66717d" font-size="14" text-anchor="middle" x="460" y="175">nem haladnak át egymáson</text>
+</g>
+</svg>
+<div class="caption">Egyszerű példa: a Player egy statikus falnak ütközik.</div>
+</div>
+<p>Ha az ütközéskor kódot is szeretnénk futtatni, akkor nem kell Triggerré alakítani az objektumot. A fizikai ütközés mellett használhatjuk az <code>OnCollisionEnter()</code>, <code>OnCollisionStay()</code> és <code>OnCollisionExit()</code> metódusokat.</p>
+<pre><button class="copy">Másolás</button><code>private void OnCollisionEnter(Collision collision)
+{
+    Debug.Log("A Player nekiütközött ennek: " + collision.gameObject.name);
+}</code></pre>
+<p>A <code>Collision collision</code> paraméter az ütközésről ad információt. A <code>collision.gameObject</code> segítségével elérjük a másik GameObjectet, de a Collision objektumban további adatok is rendelkezésre állnak, például az érintkezési pontok. Vagyis a <strong>fizikai ütközés és a kódfuttatás nem zárja ki egymást</strong>.</p>
+<div class="note info"><strong>Fontos:</strong> 3D-ben a normál <code>OnCollision...</code> eseményekhez legalább az egyik érintett Colliderhez nem kinematikus Rigidbody szükséges. Ha mindkét oldal csak statikus Collider, vagy mindkét Rigidbody kinematikus, a fizikai callbackek nem ugyanúgy viselkednek. A tananyagban ezért a mozgó Player beállításait mindig tudatosan kell kialakítani.</div>
+<h3>Trigger esemény</h3>
+<p>Ha azt szeretnénk, hogy a két objektum <strong>ne állítsa meg egymást</strong>, hanem az átfedéskor csak kód fusson le, az egyik Collideren be kell kapcsolni az <strong>Is Trigger</strong> lehetőséget. Mindkét GameObjectnek rendelkeznie kell Colliderrel, és legalább az egyik oldalon Rigidbody vagy más fizikai body szükséges ahhoz, hogy a Unity trigger eseményt generáljon.</p>
+<div class="figure">
+<svg aria-label="Trigger esemény beállítása" viewbox="0 0 920 300">
+<rect fill="#fff" height="300" width="920"></rect>
+<g font-family="Segoe UI,Arial">
+<rect fill="#eef4fa" height="165" rx="9" stroke="#315f8f" stroke-width="2" width="310" x="70" y="65"></rect>
+<text font-size="19" font-weight="700" text-anchor="middle" x="225" y="98">Player</text>
+<text font-size="15" x="100" y="135">Collider: igen</text>
+<text font-size="15" x="100" y="164">Rigidbody: igen</text>
+<text font-size="15" x="100" y="193">Is Trigger: lehet ki vagy be*</text>
+<rect fill="#fff4e8" height="165" rx="9" stroke="#c96a12" stroke-width="2" width="310" x="540" y="65"></rect>
+<text font-size="19" font-weight="700" text-anchor="middle" x="695" y="98">Diamond / érzékelő</text>
+<text font-size="15" x="570" y="135">Collider: igen</text>
+<text font-size="15" x="570" y="164">Is Trigger: bekapcsolva</text>
+<text font-size="15" x="570" y="193">Rigidbody: nem feltétlenül kell</text>
+<line stroke="#315f8f" stroke-dasharray="8 6" stroke-width="3" x1="390" x2="530" y1="148" y2="148"></line>
+<text fill="#315f8f" font-size="14" text-anchor="middle" x="460" y="130">átfedés</text>
+<text fill="#66717d" font-size="14" text-anchor="middle" x="460" y="175">OnTriggerEnter()</text>
+</g>
+</svg>
+<div class="caption">Trigger esetén legalább az egyik érintkező Collider <strong>Is Trigger</strong> beállítása aktív. *A másik Collider lehet normál Collider; a lényeg, hogy az egyik fél trigger legyen.</div>
+</div>
+<pre><button class="copy">Másolás</button><code>private void OnTriggerEnter(Collider other)
+{
+    Debug.Log("Belépett a triggerbe: " + other.gameObject.name);
+}</code></pre>
+<p>Itt a paraméter típusa már nem <code>Collision</code>, hanem <code>Collider</code>. Az <code>other</code> annak a Collidernek a referenciája, amely belépett a triggerbe. Ha csak a belépés pillanatára van szükségünk, <code>OnTriggerEnter()</code>-t használunk. A <code>OnTriggerStay()</code> addig fut a fizikai frissítések során, amíg az átfedés fennáll, az <code>OnTriggerExit()</code> pedig a kilépéskor hívódik meg.</p>
+<h3>Hogyan lehet ugyanazzal a Playerrel falnak ütközni és gyémántot érzékelni?</h3>
+<p>Nem kell választani a két működés között. Egy GameObject-hierarchiában több Collider is lehet, és ezek különböző feladatokat láthatnak el. Ez történik a BasicRPG Player objektumánál is.</p>
+<table>
+<thead><tr><th>Objektum / komponens</th><th>Beállítás</th><th>Feladat</th></tr></thead>
+<tbody>
+<tr><td>Player gyökérobjektum</td><td>Rigidbody</td><td>A Player részt vesz a fizikai rendszerben.</td></tr>
+<tr><td>Player gyökérobjektum</td><td>Capsule Collider, Is Trigger bekapcsolva</td><td>Gyémánt, Enemy és más érzékelési területek felismerése.</td></tr>
+<tr><td>Body / Head / Arm gyermekobjektumok</td><td>normál Colliderek, Is Trigger kikapcsolva</td><td>A Player fizikai alakja; ezekkel ütközhet például a falnak.</td></tr>
+<tr><td>Fal</td><td>normál Collider, Is Trigger kikapcsolva</td><td>Fizikai akadály.</td></tr>
+<tr><td>Diamond</td><td>Collider, Is Trigger bekapcsolva</td><td>Áthaladáskor trigger eseményt okoz, de nem állítja meg a Playert.</td></tr>
+</tbody>
+</table>
+<p>Így ugyanaz a Player kétféle kapcsolatban is részt vehet. A fal a Player normál Colliderével találkozik, ezért fizikai ütközés történik. A Diamond a Player triggerterületével kerül átfedésbe, ezért <code>OnTriggerEnter()</code> fut le. A két viselkedés nem ütközik egymással, mert külön Colliderek szolgálják a két célt.</p>
+<div class="note"><strong>Általános szabály:</strong> ha valaminek fizikailag meg kell állítania a Playert, használj normál Collidert. Ha csak észlelni szeretnéd, hogy a Player belépett egy területre, használj Trigger Collidert. Ha mindkettőre szükség van, használhatsz több Collidert ugyanazon GameObject-hierarchiában.</div>
+<h3>Fotocellás ajtó</h3>
+<p>Az ajtónál most az érzékelés a fontos, ezért a Door objektum Box Collidere Triggerként működik. Jelöld ki a <strong>Door</strong> objektumot a Hierarchyban. Az Inspectorban az <strong>Add Component</strong> gombbal adj hozzá <strong>Box Collider</strong> komponenst, majd kapcsold be az <strong>Is Trigger</strong> jelölőt. A Collider méretét úgy állítsd be, hogy a Player az ajtóhoz közeledve belépjen ebbe a térbe.</p>
+<p>A belépéskor a Unity meghívja az <code>OnTriggerEnter()</code> metódust. Az <code>if</code> feltétel ellenőrzi, hogy a belépő GameObject neve valóban <code>"Player"</code>-e. Az összehasonlításhoz a <code>==</code> operátort használjuk.</p>
+<pre><button class="copy">Másolás</button><code>private void OnTriggerEnter(Collider other)
+{
+    if (other.gameObject.name == "Player")
+        directionY = 1;
+}</code></pre>
+<p>A <code>directionY</code> egy egész típusú állapotváltozó. Az 1 azt jelenti, hogy az ajtó felfelé mozogjon. Kilépéskor -1 értéket adunk neki, ami lefelé irányt jelent.</p>
+<pre><button class="copy">Másolás</button><code>private void OnTriggerExit(Collider other)
+{
+    directionY = -1;
+}</code></pre>
+<p>Az ajtó tényleges mozgatását az <code>Update()</code> végzi. Az <code>if</code> és <code>else if</code> elágazások több feltételt vizsgálnak: az ajtónak megfelelő irányba kell mozognia, de közben nem lépheti túl a <code>minY</code> és <code>maxY</code> értékekkel megadott határokat.</p>
+<pre><button class="copy">Másolás</button><code>void Update()
+{
+    if (directionY == 1 &amp;&amp; transform.position.y &lt; maxY)
+        transform.Translate(Vector3.up * speed * Time.deltaTime);
+    else if (directionY == -1 &amp;&amp; transform.position.y &gt; minY)
+        transform.Translate(Vector3.down * speed * Time.deltaTime);
+    else
+        directionY = 0;
+}</code></pre>
+<p>A <code>&amp;&amp;</code> logikai ÉS operátor: az elágazás törzse csak akkor fut le, ha mindkét feltétel igaz. A <code>transform.position.y</code> a Door aktuális Y koordinátáját adja meg. A <code>Vector3.up</code> és <code>Vector3.down</code> a felfelé, illetve lefelé mutató irányvektorok.</p>
+</section>
+<section id="gyemant">
+<h2>7. Gyémántok és gyűjtés</h2>
+<p>A projektben a gyémánt nem külső modellből származik. Egy <strong>Diamond</strong> gyökérobjektum alatt két Cube található, amelyeket eltérő irányban elforgatva egyszerű gyémántszerű forma jön létre. Ez jól mutatja, hogy egy látványosabb játékelem elkészítéséhez nem feltétlenül van szükség kész 3D modellre.</p>
+<div class="figure">
+<svg aria-label="A Diamond objektum felépítése" viewbox="0 0 920 330">
+<rect fill="#fff" height="330" width="920"></rect>
+<g transform="translate(235 165)">
+<polygon fill="#19cdbd" points="0,-92 78,0 0,92 -78,0" stroke="#27837f" stroke-width="3"></polygon>
+<polygon fill="#238fd0" fill-opacity=".72" points="0,-72 60,0 0,72 -60,0" stroke="#315f8f" stroke-width="3" transform="rotate(45)"></polygon>
+</g>
+<g fill="#20252b" font-family="Segoe UI,Arial">
+<text font-size="20" font-weight="700" x="445" y="75">Diamond</text>
+<text font-size="16" x="445" y="112">A két Cube eltérő irányú elforgatása</text>
+<text font-size="16" x="445" y="138">adja a gyémánt egyszerű formáját.</text>
+<text font-size="16" x="445" y="184">A Diamond gyökérobjektumra kerül:</text>
+<text font-size="16" x="465" y="214">• DiamondMovement script</text>
+<text font-size="16" x="465" y="241">• Sphere Collider, Is Trigger bekapcsolva</text>
+<text font-size="16" x="465" y="268">• Diamond tag</text>
+</g>
+</svg>
+<div class="caption">A Diamond prefab szemléltető felépítése a feltöltött projekt alapján.</div>
+</div>
+<p>A Diamond gyökérobjektumot jelöld ki a Hierarchyban. Az Inspectorban az <strong>Add Component</strong> gombbal adj hozzá <strong>Sphere Collider</strong> komponenst, majd kapcsold be az <strong>Is Trigger</strong> lehetőséget. A kész prefabban a Collider sugara 0,9. Ezután az Inspector tetején a <strong>Tag</strong> mezőnél hozz létre <strong>Diamond</strong> taget, és rendeld hozzá az objektumhoz.</p>
+<h3>Lebegés és forgás</h3>
+<p>A gyémánt folyamatosan forog, közben pedig fel-le mozog. A forgás egyszerű: minden képkockában kis mértékben elforgatjuk a függőleges tengely körül. A lebegésnél a <code>moveUp</code> változó tárolja, hogy a gyémánt éppen felfelé vagy lefelé haladjon, a <code>minY</code> és <code>maxY</code> pedig a két szélső helyzetet.</p>
+<pre><button class="copy">Másolás</button><code>void Update()
+{
+    transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+
+    if (moveUp &amp;&amp; transform.position.y &lt; maxY)
+        transform.Translate(Vector3.up * movementSpeed * Time.deltaTime * (Mathf.Sin(time) + 1));
+    else if (!moveUp &amp;&amp; transform.position.y &gt; minY)
+        transform.Translate(Vector3.down * movementSpeed * Time.deltaTime * (Mathf.Sin(time) + 1));
+    else
+        moveUp = !moveUp;
+
+    time += Time.deltaTime;
+}</code></pre>
+<p>A <code>Mathf.Sin(time)</code> értéke időben folyamatosan változik, ezért a mozgási sebesség sem teljesen állandó. A gyémánt így nem egyszerűen azonos sebességgel jár fel-le, hanem a mozgása valamivel természetesebb hatású.</p>
+<h3>Gyűjtés és Prefab</h3>
+<p>A kész Diamond objektumot húzd a Project ablak egy <strong>Prefabs</strong> mappájába. A Prefab újra felhasználható sablon: több példányt lehet a jelenetbe helyezni úgy, hogy mindegyik ugyanabból az alapbeállításból származik.</p>
+<p>A gyűjtést a Playeren lévő <code>PlayerCollector</code> komponens végzi. Amikor a Player trigger Collidere átfedi a Diamond trigger Colliderét, lefut az <code>OnTriggerEnter()</code>. A script a tag alapján ellenőrzi, hogy valóban gyémántról van-e szó.</p>
+<pre><button class="copy">Másolás</button><code>private void OnTriggerEnter(Collider other)
+{
+    if (other.gameObject.tag == "Diamond")
+    {
+        nrOfDiamondsCollected++;
+        textNrOfDiamondsCollected.text += "*";
+        Destroy(other.gameObject);
+    }
+}</code></pre>
+<p>Ha a belépő objektum Diamond taggel rendelkezik, növeljük a számlálót, frissítjük a felületet, majd a <code>Destroy()</code> eltávolítja az adott gyémántpéldányt a jelenetből.</p>
+</section>
+<section id="ui">
+<h2>8. UI és a feltételes ajtó</h2>
+<p>A gyémántok számát nem a 3D jelenetben, hanem a képernyőre rajzolt felhasználói felületen jelenítjük meg. A Unity ilyen elemeit egy <strong>Canvas</strong> nevű GameObject alá kell szervezni. A Canvas tekinthető annak a kétdimenziós felületnek, amelyre a szövegek, gombok és más UI-elemek kerülnek.</p>
+<h3>Canvas létrehozása</h3>
+<p>A <strong>Hierarchy</strong> ablakban kattints jobb gombbal egy üres területre, majd válaszd a <span class="path">UI → Canvas</span> elemet. A Hierarchyban megjelenik egy <strong>Canvas</strong> GameObject. A Unity általában egy <strong>EventSystem</strong> objektumot is létrehoz; ez az egérrel, billentyűzettel vagy más beviteli eszközzel kezelhető UI-elemek eseményeihez szükséges.</p>
+<p>A Canvas Inspectorában a <strong>Render Mode</strong> határozza meg, hogyan jelenjen meg a felület. Ennél a demónál a <strong>Screen Space - Overlay</strong> a legegyszerűbb választás: a UI közvetlenül a játék képe fölött jelenik meg, és nem kell külön kamerához vagy 3D pozícióhoz kötni.</p>
+<div class="figure">
+<svg aria-label="Canvas és UI elemek elrendezése" viewbox="0 0 920 430">
+<rect fill="#fff" height="430" width="920"></rect>
+<g font-family="Segoe UI,Arial">
+<text fill="#253c58" font-size="21" font-weight="700" text-anchor="middle" x="460" y="38">Canvas – a képernyőn megjelenő UI területe</text>
+<rect fill="#f8fafc" height="300" rx="6" stroke="#315f8f" stroke-width="3" width="730" x="95" y="70"></rect>
+<text fill="#66717d" font-size="14" x="115" y="98">Game nézet / Canvas</text>
+<rect fill="#fff4e8" height="65" rx="6" stroke="#c96a12" stroke-width="2" width="225" x="125" y="115"></rect>
+<text fill="#253c58" font-size="16" font-weight="700" text-anchor="middle" x="237" y="143">Gyémántok száma</text>
+<text fill="#66717d" font-size="14" text-anchor="middle" x="237" y="165">bal felső sarokhoz horgonyozva</text>
+<rect fill="#eef4fa" height="58" rx="6" stroke="#315f8f" stroke-width="2" width="270" x="325" y="275"></rect>
+<text fill="#253c58" font-size="16" font-weight="700" text-anchor="middle" x="460" y="300">Go to door</text>
+<text fill="#66717d" font-size="14" text-anchor="middle" x="460" y="321">alsó-középső területhez igazítva</text>
+<circle cx="108" cy="83" fill="#c96a12" r="5"></circle>
+<line stroke="#c96a12" stroke-width="2" x1="108" x2="125" y1="83" y2="115"></line>
+<text fill="#66717d" font-size="14" x="115" y="397">A horgony (anchor) azt adja meg, a szülő Canvas mely pontjához viszonyítjuk az UI-elemet.</text>
+</g>
+</svg>
+<div class="caption">A Canvas a teljes képernyőre illeszkedik. A rajta lévő szövegek helyét nem 3D koordinátákkal, hanem Rect Transform és anchor beállításokkal adjuk meg.</div>
+</div>
+<h3>TextMeshPro szövegelem létrehozása</h3>
+<p>Jelöld ki a <strong>Canvas</strong> objektumot a Hierarchyban, majd kattints rajta jobb gombbal. A megjelenő helyi menüben válaszd a <span class="path">UI → Text - TextMeshPro</span> elemet. Az új TextMeshPro GameObject a Canvas gyermekeként jön létre. Ha a Unity ekkor felajánlja a TextMeshPro alap erőforrásainak importálását, válaszd az alap TMP resources importálását.</p>
+<p>Ha még nincs Canvas a jelenetben, UI-elem létrehozásakor a Unity képes automatikusan létrehozni egyet. A tananyagban azonban szándékosan előbb hozzuk létre a Canvast, mert így egyértelműbb, hogy a szövegek ennek a gyermekobjektumai.</p>
+<h3>Rect Transform és pozicionálás</h3>
+<p>A hagyományos 3D GameObjectok <strong>Transform</strong> komponense helyett a UI-elemek <strong>Rect Transform</strong> komponenst használnak. Ez nemcsak pozíciót, elfordulást és méretarányt tárol, hanem egy téglalap méretét és a szülőhöz viszonyított igazítását is.</p>
+<p>Jelöld ki a létrehozott TextMeshPro GameObjectet a Hierarchyban. Az Inspector tetején a <strong>Rect Transform</strong> komponens jelenik meg. Itt állítható többek között a szélesség, magasság, az X/Y pozíció és az <strong>Anchor</strong>. Az Anchor azt mondja meg, hogy a szöveg a Canvas mely pontjához vagy területéhez legyen kötve. Ha például a gyémántszámlálót a bal felső sarokhoz horgonyozzuk, különböző képernyőméretek mellett is ehhez a sarokhoz igazodik.</p>
+<div class="figure">
+<svg aria-label="Rect Transform és anchor működése" viewbox="0 0 920 470">
+<rect fill="#fff" height="470" width="920"></rect>
+<g font-family="Segoe UI,Arial">
+<text fill="#253c58" font-size="21" font-weight="700" text-anchor="middle" x="460" y="38">Rect Transform – pozíció és horgonyzás</text>
+<rect fill="#f8fafc" height="285" rx="6" stroke="#7c8996" stroke-width="2" width="390" x="75" y="75"></rect>
+<text fill="#66717d" font-size="14" x="90" y="102">Canvas</text>
+<circle cx="95" cy="95" fill="#c96a12" r="7"></circle>
+<line stroke="#c96a12" stroke-dasharray="5 4" stroke-width="2" x1="95" x2="155" y1="95" y2="135"></line>
+<rect fill="#fff4e8" height="62" rx="5" stroke="#c96a12" stroke-width="2" width="195" x="155" y="130"></rect>
+<text font-size="16" font-weight="700" text-anchor="middle" x="252" y="158">Diamonds: 3</text>
+<text fill="#66717d" font-size="13" text-anchor="middle" x="252" y="179">Rect Transform téglalapja</text>
+<text fill="#66717d" font-size="14" x="95" y="395">Anchor: bal felső sarok</text>
+<text fill="#66717d" font-size="14" x="95" y="419">Az X/Y pozíció ehhez a ponthoz képest értendő.</text>
+<rect fill="#f3f6f8" height="285" rx="7" stroke="#315f8f" stroke-width="2" width="310" x="535" y="75"></rect>
+<text fill="#253c58" font-size="17" font-weight="700" x="560" y="110">Rect Transform</text>
+<text font-size="14" x="560" y="148">Anchor Presets: bal felső</text>
+<text font-size="14" x="560" y="181">Pos X: 30</text>
+<text font-size="14" x="560" y="210">Pos Y: -25</text>
+<text font-size="14" x="560" y="239">Width: 220</text>
+<text font-size="14" x="560" y="268">Height: 60</text>
+<text fill="#66717d" font-size="14" x="560" y="315">A negatív Y itt lefelé mozdítja</text>
+<text fill="#66717d" font-size="14" x="560" y="337">az elemet a felső horgonyponthoz képest.</text>
+</g>
+</svg>
+<div class="caption">A Rect Transform pozíciója mindig az Anchor beállításához viszonyítva értelmezhető. Ezért célszerű előbb a horgonyzást, és csak utána a pontos pozíciót beállítani.</div>
+</div>
+<p>A gyémántszámlálónál célszerű először a Rect Transform <strong>Anchor Presets</strong> gombjával a bal felső sarokhoz igazítást választani, majd az X és Y értékekkel néhány pixel távolságot hagyni a képernyő szélétől. A <strong>Width</strong> és <strong>Height</strong> a szöveg számára fenntartott téglalap méretét adja meg.</p>
+<p>A TextMeshPro komponensben állítható maga a szöveg, a betűméret, a betűstílus és az igazítás. Ennél a demónál nincs szükség bonyolult formázásra; a lényeg, hogy a felirat jól olvasható legyen a játék háttere előtt.</p>
+<h3>Canvas Scaler</h3>
+<p>A Canvas GameObjecton található <strong>Canvas Scaler</strong> komponens segít abban, hogy a felület különböző felbontásokon is használható maradjon. Egyszerű demónál is célszerű a <strong>UI Scale Mode</strong> értékét <strong>Scale With Screen Size</strong>-ra állítani, majd megadni egy referenciafelbontást. Ekkor a Unity a teljes UI-t ehhez viszonyítva méretezi.</p>
+<p>Ehhez jelöld ki a <strong>Canvas</strong> objektumot a Hierarchyban, majd az Inspectorban keresd meg a <strong>Canvas Scaler</strong> komponenst. A <strong>UI Scale Mode</strong> legördülő mezőben válaszd a <strong>Scale With Screen Size</strong> lehetőséget. Oktatási példában megfelelő kiindulás lehet például az 1920 × 1080 referenciafelbontás.</p>
+<h3>A gyémántszámláló összekapcsolása a scripttel</h3>
+<p>A <code>PlayerCollector</code> scriptben a <code>textNrOfDiamondsCollected</code> mező típusa <code>TextMeshProUGUI</code>. Ez egy referencia lesz a Hierarchyban létrehozott TextMeshPro komponensre.</p>
+<pre><button class="copy">Másolás</button><code>public TextMeshProUGUI textNrOfDiamondsCollected;</code></pre>
+<p>A <code>TextMeshProUGUI</code> egy osztálytípus: nem magát a kiírt szöveget tároljuk benne, hanem annak a UI-komponensnek a referenciáját, amelynek a tartalmát módosítani szeretnénk. Mivel a mező <code>public</code>, a PlayerCollector komponens Inspectorában megjelenik egy üres referenciahely.</p>
+<div class="steps">
+<div class="step"><div>A Hierarchyban jelöld ki a <strong>Player</strong> objektumot.</div></div>
+<div class="step"><div>Az Inspectorban keresd meg a <strong>PlayerCollector</strong> komponenst és benne a <strong>Text Nr Of Diamonds Collected</strong> mezőt.</div></div>
+<div class="step"><div>A Hierarchyból húzd rá erre a mezőre a Canvas alatt található gyémántszámláló TextMeshPro GameObjectet.</div></div>
+</div>
+<p>Ezután a script a referencia <code>text</code> tulajdonságán keresztül módosíthatja a képernyőn megjelenő feliratot.</p>
+<pre><button class="copy">Másolás</button><code>textNrOfDiamondsCollected.text += "*";</code></pre>
+<p>A <code>.text</code> a TextMeshPro komponens szövegtartalmát jelenti. A <code>+=</code> operátor nem lecseréli a meglévő értéket, hanem hozzáfűzi az új szöveget. A projektben minden összegyűjtött gyémánt után egy új <code>*</code> karakter kerül a felirathoz.</p>
+<h3>A „Go to door” üzenet</h3>
+<p>A második szövegelem létrehozásához ismét jelöld ki a <strong>Canvas</strong> objektumot a Hierarchyban, kattints rajta jobb gombbal, majd válaszd a <span class="path">UI → Text - TextMeshPro</span> elemet. Nevezd át például <strong>Text (Go to door)</strong>-ra. Ezt a feliratot célszerű a képernyő alsó-középső területére helyezni, ezért a Rect Transform Anchor Presets között válassz alsó-középső horgonyzást, majd állítsd be a kívánt Y távolságot.</p>
+<p>A felirat alaphelyzetben ne legyen látható. Jelöld ki a GameObjectet a Hierarchyban, és az Inspector tetején kapcsold ki a GameObject neve melletti aktív jelölőt. A script később a <code>SetActive(true)</code> hívással ideiglenesen bekapcsolja.</p>
+<pre><button class="copy">Másolás</button><code>if (playerCollector.nrOfDiamondsCollected == minNrOfDiamondsToOpen)
+    textGoToDoor.gameObject.SetActive(true);
+
+if (playerCollector.nrOfDiamondsCollected &gt;= minNrOfDiamondsToOpen)
+    elapsedTimeOfTextGoToDoor += Time.deltaTime;
+
+if (elapsedTimeOfTextGoToDoor &gt;= 2)
+    textGoToDoor.gameObject.SetActive(false);</code></pre>
+<p>Az első <code>if</code> pontos egyenlőséget vizsgál: az üzenet akkor jelenik meg, amikor a játékos éppen eléri a szükséges darabszámot. A második feltétel ettől kezdve növeli az eltelt időt. Amikor ez eléri a két másodpercet, a harmadik feltétel ismét kikapcsolja a szöveg GameObjectjét.</p>
+<h3>Az ajtó nyitási feltétele</h3>
+<p>Az ajtónak tudnia kell, hány gyémántot gyűjtött a Player. A <code>DoorMovement</code> scriptben ezért egy GameObject referencia mutat a Playerre.</p>
+<pre><button class="copy">Másolás</button><code>public GameObject player;
+PlayerCollector playerCollector;
+
+void Start()
+{
+    playerCollector = player.GetComponent&lt;PlayerCollector&gt;();
+}</code></pre>
+<p>A <code>player</code> egy GameObject típusú referencia. A hozzárendelést az Editorban végezzük el: a Hierarchyban jelöld ki a <strong>Door</strong> objektumot, az Inspectorban keresd meg a <strong>DoorMovement</strong> komponenst, majd a Hierarchyból húzd a <strong>Player</strong> GameObjectet a komponens <strong>Player</strong> mezőjére.</p>
+<p>A <code>GetComponent&lt;PlayerCollector&gt;()</code> a megadott GameObjecthez kapcsolt komponensek között keres egy <code>PlayerCollector</code> típusút, és annak referenciáját adja vissza. Így az ajtó közvetlenül hozzáfér a gyémántok aktuális számához.</p>
+<pre><button class="copy">Másolás</button><code>private void OnTriggerEnter(Collider other)
+{
+    if (other.gameObject.name == "Player")
+    {
+        if (playerCollector.nrOfDiamondsCollected &gt;= minNrOfDiamondsToOpen)
+            directionY = 1;
+    }
+}</code></pre>
+<p>A <code>&gt;=</code> operátor jelentése „nagyobb vagy egyenlő”. Az ajtó tehát akkor is nyitható marad, ha a játékos a minimálisan szükségesnél több gyémántot gyűjtött össze. A <code>minNrOfDiamondsToOpen</code> public mező, ezért az értéke a DoorMovement komponens Inspectorában állítható; a kész projektben ez az érték 3.</p>
+</section>
+<section id="enemy">
+<h2>9. Enemy és támadás</h2>
+<p>Az Enemy szintén egyszerű primitive objektumokból összeállított Prefab. A gyökérobjektum <strong>Enemy</strong> taggel rendelkezik, rajta található az <code>EnemyHealth</code> és az <code>EnemyFollowsPlayer</code> script, valamint egy nagyobb Box Collider, amelynél az <strong>Is Trigger</strong> be van kapcsolva.</p>
+<p>Az <code>EnemyFollowsPlayer</code> a <code>Start()</code> során megkeresi a <strong>Player</strong> nevű objektumot. Az <code>Update()</code> minden képkockában kiszámítja a Player irányát, fokozatosan felé fordítja az Enemy-t, majd a pozícióját is a Player felé mozdítja.</p>
+<pre><button class="copy">Másolás</button><code>void Start()
+{
+    player = GameObject.Find("Player");
+}
+
+void Update()
+{
+    if (player == null) return;
+
+    Vector3 direction = player.transform.position - transform.position;
+    Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+    transform.rotation = Quaternion.Slerp(
+        transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
+
+    transform.position = Vector3.MoveTowards(
+        transform.position, player.transform.position, speed * Time.deltaTime);
+}</code></pre>
+<p>A <code>Quaternion.LookRotation()</code> előállítja azt az elfordulást, amely a Player irányába néz. A <code>Quaternion.Slerp()</code> nem azonnal állítja erre az irányra az Enemy-t, hanem fokozatos fordulást hoz létre. A <code>Vector3.MoveTowards()</code> hasonló módon közelíti a pozíciót.</p>
+<h3>Támadás</h3>
+<p>A kész projektben a <code>PlayerAttack</code> script a <strong>Player gyökérobjektumon</strong> található. Ugyanitt van a nagyobb, triggerként működő Capsule Collider is. A támadás tehát nem a Stick saját Collideréből indul ki: a Player triggerterülete érzékeli, hogy egy Enemy a közelben van.</p>
+<p>Az Enemy gyökérobjektumán szintén trigger Box Collider található. Amíg az Enemy és a Player triggerterülete átfedi egymást, a Unity meghívja az <code>OnTriggerStay()</code> metódust. Ha ekkor a játékos lenyomja a Space billentyűt, a script ellenőrzi az Enemy taget, majd lekéri az <code>EnemyHealth</code> komponenst.</p>
+<pre><button class="copy">Másolás</button><code>private void OnTriggerStay(Collider other)
+{
+    if (Input.GetKeyDown(KeyCode.Space))
+    {
+        if (other.gameObject.tag == "Enemy")
+        {
+            EnemyHealth enemyHealth = other.gameObject.GetComponent&lt;EnemyHealth&gt;();
+            enemyHealth.Injure(damage);
+        }
+    }
+}</code></pre>
+<p>Az EnemyHealth egyszerű egész számmal tárolja az életerőt. Az <code>Injure()</code> levonja a kapott sebzést. Ha az érték nullára vagy az alá csökken, az Enemy objektumot a <code>SetActive(false)</code> kikapcsolja. Az objektum tehát nem törlődik a jelenetből, csak inaktívvá válik.</p>
+</section>
+<section id="animacio">
+<h2>10. Animáció</h2>
+<p>A támadáshoz most adjuk hozzá a botot a Playerhez. Hozz létre egy egyszerű <strong>Stick</strong> objektumot, például egy keskeny Cube-ból, és helyezd a Player egyik karja mellé. Ha közvetlenül a Stick saját középpontja körül forgatnánk, a mozgás nem úgy viselkedne, mintha a játékos a bot végét fogná.</p>
+<p>Sok 3D-s alkalmazásban, például a Blenderben, külön megadható vagy áthelyezhető egy objektum forgatási középpontja. Ebben a Unity-demóban egyszerűbb megoldást használunk: létrehozunk egy üres <strong>StickPivot</strong> GameObjectet ott, ahol a forgás középpontját szeretnénk, majd a Sticket ennek gyermekévé tesszük. Ezután nem a Sticket, hanem a StickPivotot forgatjuk. A gyermekobjektum követi a szülő Transformját, ezért a bot a kívánt pont körül lendül el.</p>
+<div class="hierarchy">Player
+├── Body
+├── Head
+├── Arm1
+├── Arm2
+├── Main Camera
+└── StickPivot
+    └── Stick</div>
+<div class="figure">
+<svg aria-label="A StickPivot működése" viewbox="0 0 920 390">
+<rect fill="#fff" height="390" width="920"></rect>
+<g font-family="Segoe UI,Arial">
+<text fill="#253c58" font-size="20" font-weight="700" text-anchor="middle" x="230" y="42">Stick közvetlen forgatása</text>
+<text fill="#253c58" font-size="20" font-weight="700" text-anchor="middle" x="690" y="42">Forgatás StickPivot segítségével</text>
+<g transform="translate(230 185)">
+<circle cx="0" cy="0" fill="#c96a12" r="8"></circle>
+<rect fill="#8b5a2b" height="180" rx="5" width="20" x="-10" y="-90"></rect>
+<path d="M70 0 A70 70 0 0 1 0 70" fill="none" stroke="#315f8f" stroke-width="3"></path>
+<text fill="#66717d" font-size="14" text-anchor="middle" x="0" y="135">a saját középpontja körül fordul</text>
+</g>
+<line stroke="#d9dfe6" x1="460" x2="460" y1="65" y2="330"></line>
+<g transform="translate(690 185)">
+<circle cx="0" cy="-78" fill="#c96a12" r="10"></circle>
+<rect fill="#8b5a2b" height="175" rx="5" width="16" x="-8" y="-70"></rect>
+<path d="M82 -78 A82 82 0 0 1 0 4" fill="none" stroke="#315f8f" stroke-width="3"></path>
+<text fill="#c96a12" font-size="14" x="18" y="-82">StickPivot</text>
+<text fill="#66717d" font-size="14" text-anchor="middle" x="0" y="135">a bot a Pivot pont körül lendül el</text>
+</g>
+</g>
+</svg>
+<div class="caption">A StickPivot egy külön szülőobjektummal helyettesíti a forgási középpont közvetlen áthelyezését.</div>
+</div>
+<p>A Unityben az animációt érdemes két külön fogalomra bontani. Az <strong>Animation</strong> ablakban magát a mozgást készítjük el: megadjuk, hogy egy objektum valamely tulajdonsága hogyan változzon az idő függvényében. Az <strong>Animator</strong> ablak ezzel szemben azt szabályozza, hogy az elkészült animációk közül éppen melyik fusson, és milyen feltételekkel lehessen egyik állapotból a másikba váltani.</p>
+<h3>Animation – transzformációk változása az idő függvényében</h3>
+<p>Egy egyszerű animáció felfogható úgy, mint <strong>időben egymás után végrehajtott Transform-változások sorozata</strong>. Nem kell minden egyes képkockához külön megadnunk a pontos pozíciót vagy elfordulást. Néhány fontos időpillanatban kulcsértékeket, úgynevezett <strong>keyframe-eket</strong> adunk meg, a Unity pedig kiszámítja a köztes értékeket.</p>
+<p>A projektben a <strong>StickPivot</strong> objektumot animáljuk, nem közvetlenül a Stick geometriáját. Ez azért praktikus, mert a Stick a Pivot gyermekobjektuma. Ha a Pivot elfordul vagy elmozdul, a bot automatikusan követi. A forgás középpontját így a StickPivot helyzete határozza meg.</p>
+<div class="figure">
+<svg aria-label="StickPivot animáció idővonala" viewbox="0 0 920 390">
+<rect fill="#fff" height="390" width="920"></rect>
+<g font-family="Segoe UI,Arial">
+<text fill="#253c58" font-size="21" font-weight="700" x="55" y="40">StickAnimation – fontos időpontok</text>
+<line stroke="#7b8794" stroke-width="3" x1="100" x2="830" y1="300" y2="300"></line>
+<line stroke="#7b8794" stroke-width="3" x1="100" x2="100" y1="289" y2="311"></line>
+<line stroke="#7b8794" stroke-width="3" x1="343" x2="343" y1="289" y2="311"></line>
+<line stroke="#7b8794" stroke-width="3" x1="526" x2="526" y1="289" y2="311"></line>
+<line stroke="#7b8794" stroke-width="3" x1="830" x2="830" y1="289" y2="311"></line>
+<text font-size="14" text-anchor="middle" x="100" y="335">0 s</text>
+<text font-size="14" text-anchor="middle" x="343" y="335">0,33 s</text>
+<text font-size="14" text-anchor="middle" x="526" y="335">0,58 s</text>
+<text font-size="14" text-anchor="middle" x="830" y="335">1 s</text>
+<g transform="translate(100 95)">
+<circle cx="0" cy="70" fill="#c96a12" r="8"></circle>
+<rect fill="#8b5a2b" height="115" rx="4" width="14" x="-7" y="64"></rect>
+<text font-size="14" text-anchor="middle" x="0" y="205">kiinduló helyzet</text>
+</g>
+<g transform="translate(343 95)">
+<circle cx="0" cy="70" fill="#c96a12" r="8"></circle>
+<rect fill="#8b5a2b" height="125" rx="4" transform="rotate(45 0 70)" width="14" x="-7" y="64"></rect>
+<text font-size="14" text-anchor="middle" x="0" y="205">X forgatás: 45°</text>
+<text font-size="14" text-anchor="middle" x="0" y="225">Y pozíció: 1,29</text>
+<text font-size="14" text-anchor="middle" x="0" y="245">Scale megnő</text>
+</g>
+<g transform="translate(526 95)">
+<circle cx="0" cy="70" fill="#c96a12" r="8"></circle>
+<rect fill="#8b5a2b" height="115" rx="4" width="14" x="-7" y="64"></rect>
+<text font-size="14" text-anchor="middle" x="0" y="205">Scale visszaáll</text>
+</g>
+<g transform="translate(830 95)">
+<circle cx="0" cy="70" fill="#c96a12" r="8"></circle>
+<rect fill="#8b5a2b" height="115" rx="4" width="14" x="-7" y="64"></rect>
+<text font-size="14" text-anchor="middle" x="0" y="205">vissza a kezdő</text>
+<text font-size="14" text-anchor="middle" x="0" y="225">helyzetbe</text>
+</g>
+</g>
+</svg>
+<div class="caption">A feltöltött StickAnimation clip fő kulcsértékei. A Unity a megadott időpontok közötti értékeket interpolálja.</div>
+</div>
+<p>A feltöltött projekt <strong>StickAnimation</strong> clipje egy másodperc hosszú és 60 mintavétel/másodperc beállítást használ. A clip a StickPivot Transformjának több tulajdonságát is módosítja. A legfontosabb kulcsértékek:</p>
+<table>
+<thead><tr><th>Idő</th><th>Rotation X</th><th>Position Y</th><th>Scale</th></tr></thead>
+<tbody>
+<tr><td>0 s</td><td>0°</td><td>1,82</td><td>(1, 1, 1)</td></tr>
+<tr><td>0,33 s</td><td>45°</td><td>1,29</td><td>kb. (2,02; 1,93; 2,11)</td></tr>
+<tr><td>0,58 s</td><td>köztes érték</td><td>köztes érték</td><td>vissza (1, 1, 1)-re</td></tr>
+<tr><td>1 s</td><td>0°</td><td>1,82</td><td>(1, 1, 1)</td></tr>
+</tbody>
+</table>
+<p>Ez a clip tehát nem egyszerűen elforgatja a botot. A Pivot helyzetét és méretét is megváltoztatja, majd visszaállítja az eredeti állapotot. Oktatási szempontból ez jól szemlélteti, hogy az Animation ablakban nem csak Rotation, hanem Position, Scale vagy más animálható komponensérték is változtatható.</p>
+<h4>Az animáció elkészítése az Animation ablakban</h4>
+<div class="steps">
+<div class="step"><div>A Hierarchyban jelöld ki a <strong>StickPivot</strong> objektumot.</div></div>
+<div class="step"><div>A Unity Editor felső menüsorában válaszd a <span class="path">Window → Animation → Animation</span> parancsot. A megnyíló <strong>Animation</strong> ablak mindig a Hierarchyban kijelölt animálható GameObjecthoz kapcsolódik.</div></div>
+<div class="step"><div>Hozz létre egy új Animation Clipet <strong>StickAnimation</strong> néven, vagy válaszd ki a már létrehozott clipet.</div></div>
+<div class="step"><div>Az <strong>Add Property</strong> gombbal add hozzá a Transform azon tulajdonságait, amelyeket változtatni szeretnél. A projektben a Position, Rotation és Scale is szerepel.</div></div>
+<div class="step"><div>Állítsd az időmutatót 0 másodpercre, és rögzítsd a kiinduló Transform-értékeket. Ez lesz az első keyframe.</div></div>
+<div class="step"><div>Állítsd az időmutatót körülbelül 0,33 másodpercre, majd módosítsd a StickPivot Transformját. A projektben ekkor az X tengely körüli elfordulás 45°, a Y pozíció lejjebb kerül és a Scale is megnő.</div></div>
+<div class="step"><div>0,58 másodpercnél a Scale visszaáll az eredeti értékre, 1 másodpercnél pedig a Position és Rotation is visszatér a kezdő állapotba.</div></div>
+</div>
+<p>Amikor az Animation ablakban a piros <strong>Record</strong> mód aktív, a Unity a kijelölt időpontban végzett Transform-módosításokból automatikusan keyframe-et hozhat létre. Fontos ezért figyelni arra, hogy melyik időpontra áll az időmutató, amikor egy értéket módosítunk.</p>
+<div class="note info"><strong>Animation és script:</strong> ugyanazt a mozgást természetesen C# kódból is végre lehetne hajtani. Az Animation Clip előnye, hogy a mozgás időbeli lefolyása vizuálisan szerkeszthető, és a Unity végzi a köztes Transform-értékek kiszámítását.</div>
+<h3>Animator – az animáció állapotainak vezérlése</h3>
+<p>Az <strong>Animator</strong> nem magukat a keyframe-eket szerkeszti. Egy állapotgépet ad, amely megmondja, hogy melyik Animation Clip fusson, és milyen feltételekkel történjen váltás az állapotok között.</p>
+<p>A projektben két állapot található. Az alapállapot neve <strong>Empty State</strong>; ebben nem fut animáció. A másik állapot a <strong>StickAnimation</strong>. Az Animator Controllerben szerepel egy <strong>TriggerHit</strong> nevű Trigger paraméter.</p>
+<div class="figure">
+<svg aria-label="A StickPivot Animator állapotgépe" viewbox="0 0 920 330">
+<rect fill="#fff" height="330" width="920"></rect>
+<defs>
+<marker id="arr" markerheight="10" markerwidth="10" orient="auto" refx="9" refy="3"><path d="M0,0 L0,6 L9,3 z" fill="#315f8f"></path></marker>
+</defs>
+<g font-family="Segoe UI,Arial">
+<rect fill="#e8edf3" height="58" rx="28" stroke="#7a8794" stroke-width="2" width="145" x="70" y="120"></rect>
+<text font-size="17" text-anchor="middle" x="142" y="155">Any State</text>
+<rect fill="#dfeee7" height="88" rx="10" stroke="#3d735d" stroke-width="3" width="175" x="365" y="105"></rect>
+<text font-size="18" font-weight="700" text-anchor="middle" x="452" y="142">Empty State</text>
+<text font-size="14" text-anchor="middle" x="452" y="168">alapállapot</text>
+<rect fill="#fff0df" height="88" rx="10" stroke="#c96a12" stroke-width="3" width="175" x="690" y="105"></rect>
+<text font-size="18" font-weight="700" text-anchor="middle" x="777" y="142">StickAnimation</text>
+<text font-size="14" text-anchor="middle" x="777" y="168">támadó animáció</text>
+<line marker-end="url(#arr)" stroke="#315f8f" stroke-width="3" x1="215" x2="676" y1="149" y2="149"></line>
+<text fill="#315f8f" font-size="14" text-anchor="middle" x="445" y="132">TriggerHit</text>
+<path d="M690 190 C620 270, 520 270, 465 205" fill="none" marker-end="url(#arr)" stroke="#315f8f" stroke-width="3"></path>
+<text fill="#315f8f" font-size="14" text-anchor="middle" x="585" y="276">Has Exit Time</text>
+</g>
+</svg>
+<div class="caption">A feltöltött StickPivot Animator Controller egyszerű állapotgépe.</div>
+</div>
+<p>A <strong>Any State → StickAnimation</strong> átmenet feltétele a <strong>TriggerHit</strong>. Ez azt jelenti, hogy bármely aktuális állapotból elindulhat a támadó animáció, ha ez a trigger aktiválódik. A <strong>StickAnimation → Empty State</strong> átmenetnél nincs külön feltétel, viszont aktív a <strong>Has Exit Time</strong>. Így a clip lefutása után az Animator automatikusan visszatér az alapállapotba.</p>
+<h4>Az Animator beállítása</h4>
+<div class="steps">
+<div class="step"><div>A <strong>Project</strong> ablakban kattints jobb gombbal egy üres területre, és válaszd a <span class="path">Create → Animator Controller</span> parancsot. Nevezd el például <strong>StickPivot Animator Controller</strong>-nek. Ha a mellékelt projektet vizsgálod, ezt a controller fájlt már készen megtalálod.</div></div>
+<div class="step"><div>Jelöld ki az Animator Controller fájlt a <strong>Project</strong> ablakban, majd a Unity Editor felső menüsorában válaszd a <span class="path">Window → Animation → Animator</span> parancsot. Az <strong>Animator</strong> ablakban ennek a controllernek az állapotgépe jelenik meg.</div></div>
+<div class="step"><div>Az alapállapot legyen egy üres <strong>Empty State</strong>. Ez azt jelenti, hogy normál helyzetben nem fut a bot animációja.</div></div>
+<div class="step"><div>Húzd be a <strong>StickAnimation</strong> clipet az Animator ablakba. Ezzel létrejön a hozzá tartozó állapot.</div></div>
+<div class="step"><div>A Parameters panelen hozz létre <strong>Trigger</strong> típusú paramétert <strong>TriggerHit</strong> néven.</div></div>
+<div class="step"><div>Készíts átmenetet az <strong>Any State</strong> állapotból a StickAnimation állapotba, és Conditionként add meg a TriggerHit paramétert.</div></div>
+<div class="step"><div>Készíts visszavezető átmenetet a StickAnimation állapotból az Empty State-be, és hagyd aktívan a <strong>Has Exit Time</strong> beállítást.</div></div>
+</div>
+<p>Végül a StickPivot GameObjecthez Animator komponens és a <code>StickAnimator</code> script tartozik. A script a <code>Start()</code> metódusban lekéri az Animator komponenst. Amikor a játékos lenyomja a Space billentyűt, a script aktiválja a TriggerHit paramétert.</p>
+<pre><button class="copy">Másolás</button><code>Animator animator;
+
+void Start()
+{
+    animator = GetComponent&lt;Animator&gt;();
+}
+
+void Update()
+{
+    if (Input.GetKeyDown(KeyCode.Space))
+        animator.SetTrigger("TriggerHit");
+}</code></pre>
+<p>Ezzel jól elkülönülnek az egyes feladatok. A <strong>PlayerAttack</strong> script a játékmeneti hatást végzi, vagyis sebzi a közeli Enemy-t. A <strong>StickAnimator</strong> ugyanarra a Space billentyűre csak a vizuális animációt indítja el. Az <strong>Animation Clip</strong> leírja a StickPivot Transformjának időbeli változását, az <strong>Animator Controller</strong> pedig azt szabályozza, mikor fusson ez a clip.</p>
+<div class="note"><strong>Összefoglalva:</strong> a támadásnál ugyanaz a bemenet két egymástól különálló rendszert indít el. A PlayerAttack a játék szabályait kezeli, a StickAnimator pedig a megjelenítést. Ez később is fontos szemlélet: a játék logikáját és a vizuális visszajelzést érdemes külön kezelni.</div>
+</section>
+<footer>Basic RPG – Unity gyakorlati útmutató · 5. változat</footer>
+</main>
+</div>
+<script>
+document.querySelectorAll('.copy').forEach(btn=>{
+  btn.addEventListener('click',async()=>{
+    const code=btn.parentElement.querySelector('code').innerText;
+    await navigator.clipboard.writeText(code);
+    const old=btn.textContent;
+    btn.textContent='Másolva';
+    setTimeout(()=>btn.textContent=old,1000);
+  });
+});
+</script>
+</body>
+</html>
